@@ -3,6 +3,10 @@
 
 
 
+#define DEFINE_PARTICLES_PROP(particles) StructuredBuffer<Particle> particles;
+
+
+
 struct Particle {
     float3 pos;
     float size;
