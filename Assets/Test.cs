@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
+[ExecuteInEditMode]
 public class Test : MonoBehaviour {
 	public GPUParticleRenderer gshuriken;
 
@@ -9,6 +10,9 @@ public class Test : MonoBehaviour {
 	public float size = 1f;
 
 	void Update() {
+        if (gshuriken == null || gshuriken.Particles == null || positions == null)
+            return;
+        
 		var particles = gshuriken.Particles;
 		var count = particles.Count;
 
