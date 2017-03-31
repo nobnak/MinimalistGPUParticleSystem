@@ -27,6 +27,11 @@ public class GPUList<S> : System.IDisposable where S : struct {
             return buf; 
         }
     }
+	public void Replace(S[] srcList) {
+		bufferIsDirty = true;
+		Resize (srcList.Length);
+		System.Array.Copy (srcList, list, srcList.Length);
+	}
     #endregion
 
     #region Elements 
@@ -37,11 +42,17 @@ public class GPUList<S> : System.IDisposable where S : struct {
             list [i] = value; 
         }
     }
-    public void Add(S s) {
+    public void Push(S s) {
         bufferIsDirty = true;
         Resize (OptimalCapacity (count + 1));
         list [count++] = s;
     }
+	public S Pop() {
+		bufferIsDirty = true;
+		var s = list [--count];
+		Resize (OptimalCapacity (count));
+		return s;
+	}
     public S RemoveAt(int indexOf) {
         bufferIsDirty = true;
 
@@ -63,9 +74,9 @@ public class GPUList<S> : System.IDisposable where S : struct {
         }
     }
 
-    static void Release<T>(ref T buf) where T : class, System.IDisposable {
+	static void Release(ref ComputeBuffer buf)  {
         if (buf != null) {
-            buf.Dispose ();
+			buf.Release	();
             buf = null;
         }
     }
