@@ -24,13 +24,12 @@ Shader "Unlit/PointParticle" {
 
             struct gsin {
                 float4 vertex : POSITION;
-                float2 uv : TEXCOORD0;
-                float2 size : TEXCOORD1;
+                float2 size : TEXCOORD0;
             };
 
 			struct psin {
-				float2 uv : TEXCOORD0;
 				float4 vertex : SV_POSITION;
+                float2 uv : TEXCOORD0;
 			};
 
 			sampler2D _MainTex;
@@ -41,14 +40,10 @@ Shader "Unlit/PointParticle" {
             StructuredBuffer<Particle> particles;
 			
 			gsin vert (vsin v) {
-                uint2 tiles = (uint2)_Tile.xy;
-                uint i = v.vid % (tiles.x * tiles.y);
-
                 Particle p = particles[v.vid];
 
 				gsin o;
                 o.vertex = float4(p.pos, 1);
-                o.uv = float2(i % tiles.x, i / tiles.x);
                 o.size = p.size;
 				return o;
 			}
@@ -74,7 +69,7 @@ Shader "Unlit/PointParticle" {
                 for (uint i = 0; i < 6; i++) {
                     uint j = indices[i];
                     output.vertex = v[j];
-                    output.uv = input[0].uv + _Tile.zw * uvs[j];
+                    output.uv = uvs[j];
                     stream.Append(output);
                 }
                 
