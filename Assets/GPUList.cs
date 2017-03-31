@@ -74,9 +74,9 @@ public class GPUList<S> : System.IDisposable where S : struct {
         }
     }
 
-	static void Release(ref ComputeBuffer buf)  {
+    static void Release<T>(ref T buf) where T : class, System.IDisposable  {
         if (buf != null) {
-			buf.Release	();
+            buf.Dispose ();
             buf = null;
         }
     }

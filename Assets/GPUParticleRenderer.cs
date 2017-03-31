@@ -13,7 +13,7 @@ public class GPUParticleRenderer : MonoBehaviour {
 	public GPUList<Particle> Particles { get; private set; }
 
     #region Unity
-    void Awake() {
+    void OnEnable() {
         Particles = new GPUList<Particle> ();
     }
     void OnRenderObject() {
@@ -23,7 +23,7 @@ public class GPUParticleRenderer : MonoBehaviour {
             Graphics.DrawProcedural (MeshTopology.Points, Particles.Count, 1);
         }
     }
-    void OnDestroy() {
+    void OnDisable() {
 		if (Particles != null)
         	Particles.Dispose ();
     }
