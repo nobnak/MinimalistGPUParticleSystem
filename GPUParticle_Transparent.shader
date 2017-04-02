@@ -68,9 +68,9 @@ Shader "GPUParticle/Transparent" {
                     output.vertex = v[j];
                     output.uv = uvs[j];
                     stream.Append(output);
+                    if (i % 3 == 2)
+                        stream.RestartStrip();
                 }
-                
-                stream.RestartStrip();
             }
 			
 			fixed4 frag (psin i) : SV_Target {
