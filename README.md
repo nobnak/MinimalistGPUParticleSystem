@@ -5,3 +5,5 @@
 ## Usage
 ### As a submodule in a project reposity
 ```git submodule add https://github.com/nobnak/GPUParticleIdea.git Assets/Packages/BasicGPUParticle```
+
+[Thumbnail](https://youtu.be/SPkWnzZM4KE "Here")
