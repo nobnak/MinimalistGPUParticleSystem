@@ -8,8 +8,7 @@
 
 
 struct Particle {
-    float3 pos;
-    float size;
+    float4x4 model;
 };
 
 

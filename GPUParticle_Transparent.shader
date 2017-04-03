@@ -22,8 +22,7 @@ Shader "GPUParticle/Transparent" {
 			};
 
             struct gsin {
-                float4 vertex : POSITION;
-                float2 size : TEXCOORD0;
+                uint vid : TEXCOORD0;
             };
 
 			struct psin {
@@ -37,11 +36,8 @@ Shader "GPUParticle/Transparent" {
             DEFINE_PARTICLES_PROP(particles)
 			
 			gsin vert (vsin v) {
-                Particle p = particles[v.vid];
-
 				gsin o;
-                o.vertex = float4(p.pos, 1);
-                o.size = p.size;
+                o.vid = v.vid;
 				return o;
 			}
 
@@ -50,17 +46,24 @@ Shader "GPUParticle/Transparent" {
                 static float2 uvs[4] = { float2(0,0), float2(1,0), float2(0,1), float2(1,1) };
                 static uint indices[6] = { 0, 2, 3, 0, 3, 1 };
 
-                gsin p = input[0];
+                Particle p = particles[input[0].vid];
 
-                float3 right = p.size.x * normalize(mul(float4(1, 0, 0, 0), UNITY_MATRIX_IT_MV).xyz);
-                float3 up = p.size.y * normalize(mul(float4(0, 1, 0, 0), UNITY_MATRIX_IT_MV).xyz);
-                float3 center = p.vertex.xyz;
+                float4 right = float4(1,0,0,0);
+                float4 up = float4(0,1,0,0);
+                float4 center = float4(0,0,0,1);
+
+                //right = normalize(mul(right, UNITY_MATRIX_IT_MV).xyz);
+                //up = normalize(mul(up, UNITY_MATRIX_IT_MV).xyz);
+
+                right = mul(UNITY_MATRIX_VP, mul(p.model, right));
+                up = mul(UNITY_MATRIX_VP, mul(p.model, up));
+                center = mul(UNITY_MATRIX_VP, mul(p.model, center));
 
                 float4 v[4];
-                v[0] = UnityObjectToClipPos(center - up - right);
-                v[1] = UnityObjectToClipPos(center - up + right);
-                v[2] = UnityObjectToClipPos(center + up - right);
-                v[3] = UnityObjectToClipPos(center + up + right);
+                v[0] = center - up - right;
+                v[1] = center - up + right;
+                v[2] = center + up - right;
+                v[3] = center + up + right;
 
                 psin output;
                 for (uint i = 0; i < 6; i++) {
