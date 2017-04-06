@@ -64,7 +64,7 @@ public class GPUList<S> : System.IDisposable where S : struct {
     #endregion
 
     int OptimalCapacity(int count) {
-        return 1 << SmallestPowerOfTwoGreaterThan(Mathf.Max(MINIMUM_CAPACITY, count));
+        return SmallestPowerOfTwoGreaterThan(Mathf.Max(MINIMUM_CAPACITY, count));
     }
     void Resize (int targetCapacity) {
         if (list == null || list.Length != targetCapacity) {
