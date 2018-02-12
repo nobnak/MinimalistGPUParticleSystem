@@ -2,9 +2,12 @@
 
 
 
+
 RWStructuredBuffer<float3> _PositionList;
 
+uint _CounterOffset;
 StructuredBuffer<uint> _Counter;
+
 ConsumeStructuredBuffer<uint> _DeadConsumeList;
 AppendStructuredBuffer<uint> _AliveAppendList;
 
@@ -14,7 +17,7 @@ StructuredBuffer<float3> _UploadPositionList;
 [numthreads(1,1,1)]
 void Emit (uint3 id : SV_DispatchThreadID) {
 	uint i = id.x;
-	if (i < _Counter[0]) {
+	if (i < _Counter[_CounterOffset]) {
 		uint j = _DeadConsumeList.Consume();
 		_PositionList[j] = _UploadPositionList[i];
 		_AliveAppendList.Append(j);

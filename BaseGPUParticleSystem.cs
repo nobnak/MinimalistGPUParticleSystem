@@ -6,37 +6,48 @@ using UnityEngine;
 
 namespace BaseGPUParticleSystemModule {
 
-    public class BaseGPUParticleSystem : System.IDisposable {
+    public class BaseGPUParticleSystem : MonoBehaviour {
         public const string KERNEL_EMIT = "Emit";
 
-        public const string PROP_POSITION_LIST = "_PositionList";
-
         public const string PROP_COUNTER = "_Counter";
+        public const string PROP_COUNTER_OFFSET = "_CounterOffset";
+
         public const string PROP_DEAD_CONSUME_LIST = "_DeadConsumeList";
         public const string PROP_ALIVE_APPEND_LIST = "_AliveAppendList";
-
         public const string PROP_UPLOAD_POSITION_LIST = "_UploadPositionList";
 
-        protected readonly ComputeShader compute;
-        protected readonly int kernelIDEmit;
+        public const string PROP_POSITION_LIST = "_PositionList";
+        public const string PROP_ROTATION_LIST = "_RotationList";
+        public const string PROP_OBJECT_TO_WORLD_LIST = "_ObjectToWorldList";
+        public const string PROP_WORLD_TO_OBJECT_LIST = "_WorldToObjectList";
 
-        protected int capasity;
+        [SerializeField] protected int capasity;
+        [SerializeField] protected ComputeShader compute;
+        [SerializeField] protected Mesh mesh;
+        [SerializeField] protected Material mat;
+
+        protected int kernelIDEmit;
+
         protected GPUList<Vector3> positionList;
+        protected GPUList<Quaternion> rotationList;
+        protected GPUList<Matrix4x4> objectToWorldList;
+        protected GPUList<Matrix4x4> worldToObjectList;
 
-        protected GPUList<uint> counter;
+        protected GPUList<uint> args;
         protected GPUList<uint> deadList;
         protected GPUList<uint> aliveList;
-
         protected GPUList<Vector3> uploadPositionList;
 
-        public BaseGPUParticleSystem(ComputeShader compute, int capasity) {
-            this.compute = compute;
+        #region Unity
+        private void OnEnable() {
             this.kernelIDEmit = compute.FindKernel(KERNEL_EMIT);
-
-            this.capasity = capasity;
+            
             this.positionList = new GPUList<Vector3>(capasity);
+            this.rotationList = new GPUList<Quaternion>(capasity);
+            this.objectToWorldList = new GPUList<Matrix4x4>(capasity);
+            this.worldToObjectList = new GPUList<Matrix4x4>(capasity);
 
-            this.counter = new GPUList<uint>(1, ComputeBufferType.IndirectArguments);
+            this.args = new GPUList<uint>(5, ComputeBufferType.IndirectArguments);
             this.deadList = new GPUList<uint>(capasity, ComputeBufferType.Append);
             this.aliveList = new GPUList<uint>(capasity, ComputeBufferType.Append);
 
@@ -47,14 +58,22 @@ namespace BaseGPUParticleSystemModule {
             deadList.Buffer.SetCounterValue((uint)capasity);
             aliveList.Buffer.SetCounterValue(0);
         }
-
-        #region IDisposable
-        public void Dispose() {
+        private void OnDisable() {
             positionList.Dispose();
-            counter.Dispose();
+            rotationList.Dispose();
+            objectToWorldList.Dispose();
+            worldToObjectList.Dispose();
+
+            args.Dispose();
             deadList.Dispose();
             aliveList.Dispose();
             uploadPositionList.Dispose();
+        }
+        private void Update() {
+            var bounds = new Bounds(Vector3.zero, 1000f * Vector3.one);
+            args[0] = mesh.GetIndexCount(0);
+            ComputeBuffer.CopyCount(aliveList.Buffer, args.Buffer, 4);
+            Graphics.DrawMeshInstancedIndirect(mesh, 0, mat, bounds, args.Buffer, 0);
         }
         #endregion
 
@@ -62,11 +81,13 @@ namespace BaseGPUParticleSystemModule {
             uploadPositionList.Clear();
             uploadPositionList.Add(p);
 
-            ComputeBuffer.CopyCount(deadList.Buffer, counter.Buffer, 0);
+            var counterOffset = 0;
+            ComputeBuffer.CopyCount(deadList.Buffer, args.Buffer, counterOffset);
 
             compute.SetBuffer(kernelIDEmit, PROP_POSITION_LIST, positionList.Buffer);
 
-            compute.SetBuffer(kernelIDEmit, PROP_COUNTER, counter.Buffer);
+            compute.SetInt(PROP_COUNTER_OFFSET, counterOffset);
+            compute.SetBuffer(kernelIDEmit, PROP_COUNTER, args.Buffer);
             compute.SetBuffer(kernelIDEmit, PROP_DEAD_CONSUME_LIST, deadList.Buffer);
             compute.SetBuffer(kernelIDEmit, PROP_ALIVE_APPEND_LIST, aliveList.Buffer);
 
@@ -74,12 +95,14 @@ namespace BaseGPUParticleSystemModule {
 
             compute.Dispatch(kernelIDEmit, uploadPositionList.Count, 1, 1);
 
-            ComputeBuffer.CopyCount(deadList.Buffer, counter.Buffer, 0);
+#if false
+            ComputeBuffer.CopyCount(deadList.Buffer, args.Buffer, 0);
             Debug.LogFormat("Dead list count={0}, ({1})",
-                counter.Data[0], Join(",", deadList.Data));
-            ComputeBuffer.CopyCount(aliveList.Buffer, counter.Buffer, 0);
+                args.Data[0], Join(",", deadList.Data));
+            ComputeBuffer.CopyCount(aliveList.Buffer, args.Buffer, 0);
             Debug.LogFormat("Alive list count={0}, ({1})", 
-                counter.Data[0], Join(",", aliveList.Data));
+                args.Data[0], Join(",", aliveList.Data));
+#endif
 
         }
 
