@@ -14,6 +14,7 @@ AppendStructuredBuffer<uint> _AliveAppendList;
 StructuredBuffer<float3> _UploadPositionList;
 
 
+
 [numthreads(1,1,1)]
 void Emit (uint3 id : SV_DispatchThreadID) {
 	uint i = id.x;

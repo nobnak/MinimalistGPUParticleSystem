@@ -4,9 +4,9 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 
-namespace BaseGPUParticleSystemModule {
+namespace MinimalistGPUParticleSystem {
 
-    public class BaseGPUParticleSystem : MonoBehaviour {
+    public class MinimalistGPUParticle : MonoBehaviour {
         public const string KERNEL_EMIT = "Emit";
 
         public const string PROP_COUNTER = "_Counter";
